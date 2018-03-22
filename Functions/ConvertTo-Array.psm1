@@ -54,15 +54,15 @@ Function ConvertTo-Array {
 			}
 			
 			$ArrLine = $_.split("`t")
-			
-			#convert timestamp column (*_t) to DateTime format
+
 			0..($Headers.count-1) | ForEach-Object {
 				if($Headers[$_] -match '^.*_t'){
-					$value = ConvertFrom-UnixDate($ArrLine[$_])
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace('_t','') -Value (ConvertFrom-UnixDate $ArrLine[$_])
+				} elseif($Headers[$_+1] -match '^.*_t') {
+					return
 				} else {
-					$value = $ArrLine[$_]
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_] -Value $ArrLine[$_]
 				}
-				$Item | Add-Member -type NoteProperty -Name $Headers[$_] -Value $value
 			}
 
 			$ArrayOutput += $Item
