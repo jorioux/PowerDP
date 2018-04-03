@@ -34,6 +34,12 @@ The column names are kept the same, so you can easily filter with the columns na
 
 Release notes
 -
+#### 1.0.4
+* Added new function : Get-SessionObjects
+* Enhanced function ConvertTo-Array
+    - Removed "[" and "]" in column names so they are displayed correctly in Out-GridView
+    - "Duration" column now displays with seconds
+    - Converts the "Size [kB]" column to "Size (GB)" for better readability of the size
 #### 1.0.3
 * Added new function : Get-ListSessions
 * Removed "\_t" (timestamp) column and keep only the non-"\_t" column since its already converted to DateTime format

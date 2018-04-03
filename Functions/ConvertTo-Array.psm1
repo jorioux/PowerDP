@@ -26,6 +26,7 @@ Function ConvertTo-Array {
 	}
 	PROCESS {
 		$Lines | ForEach-Object {
+			$StartTime, $EndTime, $Time = $null
 
 			#skip line if null or empty
 			if([string]::IsNullOrEmpty($_)){return}
@@ -57,12 +58,35 @@ Function ConvertTo-Array {
 
 			0..($Headers.count-1) | ForEach-Object {
 				if($Headers[$_] -match '^.*_t'){
-					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace('_t','') -Value (ConvertFrom-UnixDate $ArrLine[$_])
+					$Time = (ConvertFrom-UnixDate $ArrLine[$_])
+					if($Headers[$_] -match '^Start.*_t'){
+						$StartTime = $Time
+					} elseif($Headers[$_] -match '^End.*_t'){
+						$EndTime = $Time
+					}
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace('_t','') -Value $Time
 				} elseif($Headers[$_+1] -match '^.*_t') {
 					return
+				} elseif($Headers[$_] -match '^Duration.*') {
+					if($StartTime -ne $null -and $EndTime -ne $null){
+						$Duration = [TimeSpan]::Parse($EndTime - $StartTime)
+					} else {
+						try {
+							$Duration = [TimeSpan]::Parse($ArrLine[$_])
+						} catch {
+							$Duration = $ArrLine[$_]
+						}
+					}
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [hh:mm]','') -Value $Duration
+				} elseif($Headers[$_] -match '^.*\[kB\]') {
+					$Size = $ArrLine[$_]/1KB/1KB
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [kB]',' (GB)') -Value $Size
+				} elseif($Headers[$_] -match '^.*\[MB/min\]') {
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $ArrLine[$_]
 				} else {
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_] -Value $ArrLine[$_]
 				}
+
 			}
 
 			$ArrayOutput += $Item
