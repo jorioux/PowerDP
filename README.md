@@ -1,16 +1,21 @@
 # PowerDP
 PowerShell for HPE Data Protector (DP)
 -
-
 This PowerShell Module converts the `omnirpt <...> -tab` output into a PowerShell array for easy filtering and manipulation. I intent to develop other functions in the future that builds on top of that.
+
+***Note*** This module is NOT affiliated with, funded, or in any way associated with HPE.
 
 Installation
 -
-#### PowerShell v5 and Later
-You can install the `PowerDP` module directly from the PowerShell Gallery
+You can install this module on the Cell Manager if its running on Windows, or you can install the `User Interface` component on your workstation.
+#### PowerShell v5 and later
+You can install the `PowerDP` module directly from the [PowerShell Gallery](https://www.powershellgallery.com/packages/PowerDP)
 ```PowerShell
 Install-Module PowerDP
 ```
+
+#### PowerShell v4 and earlier
+Get [PowerShellGet Module](https://docs.microsoft.com/en-us/powershell/gallery/psget/get_psget_module) then do `Install-Module PowerDP`
 
 Usage
 -
@@ -31,6 +36,11 @@ Get-ListSessions -Specification *sql* -Hours 4 -Mode trans
 ```
 
 The column names are kept the same, so you can easily filter with the columns names and display only the columns you want. It's important to include the `-tab` parameter because the function needs the input to be tab separated.
+
+Prerequisites
+-
+PowerDP requires `omniback` to be installed, and its `bin` directory must be in the PATH environment variable.
+You can install the `User Interface` component on your workstation if you want to use PowerDP on your workstation. To do so, add your workstation as a Client in the CM and install only the `User Interface` component.
 
 Release notes
 -
