@@ -123,7 +123,6 @@ Function ConvertTo-Int {
 			return [int]($IntVal)
 		}
 	} catch {
-		write-host "catch"
 		return $IntVal
 	}
 }

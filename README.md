@@ -44,6 +44,9 @@ You can install the `User Interface` component on your workstation if you want t
 
 Release notes
 -
+#### 1.0.5
+* Converts string numbers to Int to allow sorting
+* Some bugfix
 #### 1.0.4
 * Added new function : Get-SessionObjects
 * Enhanced function ConvertTo-Array
