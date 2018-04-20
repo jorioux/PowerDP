@@ -82,7 +82,11 @@ Function ConvertTo-Array {
 					$Size = $ArrLine[$_]/1KB/1KB
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [kB]',' (GB)') -Value $Size
 				} elseif($Headers[$_] -match '^.*\[MB/min\]') {
-					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $ArrLine[$_]
+					$Value = ConvertTo-Int $ArrLine[$_]
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $Value
+				} elseif($Headers[$_] -match '(GB Written|Media|Errors|Warnings|Objects|Files)') {
+					$Value = ConvertTo-Int $ArrLine[$_]
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $Value
 				} else {
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_] -Value $ArrLine[$_]
 				}
@@ -94,5 +98,32 @@ Function ConvertTo-Array {
 	}
 	END {
 		return $ArrayOutput
+	}
+}
+
+Function ConvertTo-Int {
+	<#
+		.SYNOPSIS
+			Converts a string value to a Int or Double
+	#>
+	[CmdletBinding()]
+	Param(
+		[Parameter(ValueFromPipeline = $true)]
+		[ValidateNotNullOrEmpty()]
+        $IntVal
+	)
+	try{
+		if($IntVal.GetType().FullName -match '^.*Int.*$') {
+			return [int]$IntVal
+		} elseif($IntVal.GetType().FullName -match '^.*(Double|Float).*$') {
+			return [math]::Round([double]$IntVal,2)
+		} elseif($IntVal -match '^.*(\,|\.).*$') {
+			return [math]::Round([double]($IntVal.replace(',','.')),2)
+		} else {
+			return [int]($IntVal)
+		}
+	} catch {
+		write-host "catch"
+		return $IntVal
 	}
 }
