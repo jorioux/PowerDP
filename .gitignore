@@ -62,3 +62,4 @@ build.ps1
 *.sublime-project
 *.sublime-workspace
 tmp
+README.html

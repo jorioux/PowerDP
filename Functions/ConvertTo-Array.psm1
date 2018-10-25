@@ -16,16 +16,26 @@ Function ConvertTo-Array {
 	[CmdletBinding()]
 	Param(
 		[Parameter(ValueFromPipeline = $true)]
-		[ValidateNotNullOrEmpty()]
         [string[]]$Lines
 	)
 	BEGIN {
+		$ConvertFrom = ""
 		$Headers = $False
 		$ArrayOutput = @()
 		$i = 0
 	}
 	PROCESS {
 		$Lines | ForEach-Object {
+			#Detect type of input
+			if($ConvertFrom -eq ""){
+				if($_.Startswith("#")){
+					$ConvertFrom = "tab"
+				} else {
+					$ConvertFrom = "notab"
+				}
+			}
+
+
 			$StartTime, $EndTime, $Time = $null
 
 			#skip line if null or empty
@@ -34,27 +44,62 @@ Function ConvertTo-Array {
 			$ArrLine = @()
 			$Item = New-Object PSObject
 			$i++
-			#skips lines until at the headers line
-			if($_.StartsWith("#")){
-				#if current line contains the headers
-				if($Headers -eq $True){
-					$Headers = $_.replace("# ","")
-					$Headers = $Headers.split("`t")
+
+
+			if($ConvertFrom -eq "tab"){
+				
+				#skips lines until at the headers line
+				if($_.StartsWith("#")){
+					#if current line contains the headers
+					if($Headers -eq $True){
+						$Headers = $_.replace("# ","")
+						$Headers = $Headers.split("`t")
+						return
+					}
+					#if the next line contains the headers
+					if($_.StartsWith("# Headers")){
+						$Headers = $True
+						return
+					}
+					return
+				#exit if unable to fetch the headers
+				} elseif($Headers -eq $False -or $Headers.Count -eq 0) {
+					Write-Error "Failed to fetch the headers from the input."
+					break
+				}
+				
+				$ArrLine = $_.split("`t")
+
+			} else {
+
+				#Skip if delimiter line
+				if($_ -match "^(={3,}|-{3,}|_{3,})" -or [string]::IsNullOrEmpty($_)){
 					return
 				}
-				#if the next line contains the headers
-				if($_.StartsWith("# Headers")){
-					$Headers = $True
+
+				#Parse line with pattern
+				$line = $_ | Select-String -Pattern "\s*(.*?)(?:\s{2,}|$)" -AllMatches
+				
+				#Skip if invalid line
+				if($line.Matches.count -lt 3){
 					return
 				}
-				return
-			#exit if unable to fetch the headers
-			} elseif($Headers -eq $False -or $Headers.Count -eq 0) {
-				Write-Error "Failed to fetch the headers from the input. Make sure you use the '-tab' parameter with the omnirpt command."
-				break
+
+				#Convert the line to an array
+				Foreach($match in $line.Matches) {
+					if(![string]::IsNullOrEmpty($match.Groups[1].Value)){
+						$ArrLine += $match.Groups[1].Value
+					}
+				}
+
+				#Grab the headers
+				if($Headers -eq $false){
+					$Headers = $ArrLine
+					return
+				}
+
+
 			}
-			
-			$ArrLine = $_.split("`t")
 
 			0..($Headers.count-1) | ForEach-Object {
 				if($Headers[$_] -match '^.*_t'){
@@ -68,8 +113,14 @@ Function ConvertTo-Array {
 				} elseif($Headers[$_+1] -match '^.*_t') {
 					return
 				} elseif($Headers[$_] -match '^Duration.*') {
-					if($StartTime -ne $null -and $EndTime -ne $null){
+
+					#If job is not ended yet, we set the Duration to null
+					if($StartTime -gt $EndTime){
+						$Duration = $null
+
+					} elseif($StartTime -ne $null -and $EndTime -ne $null){
 						$Duration = [TimeSpan]::Parse($EndTime - $StartTime)
+
 					} else {
 						try {
 							$Duration = [TimeSpan]::Parse($ArrLine[$_])

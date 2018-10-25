@@ -1,9 +1,9 @@
 Function Get-SQLRestoreSessions {
 	<#
         .SYNOPSIS
-            Returns a table with latest SQL restore sessions
+            Returns an array with latest SQL restore sessions
         .DESCRIPTION
-            Fetches the session messages of each SQL restore sessions and creates a PowerShell table
+            Fetches the session messages of each SQL restore sessions and returns a PowerShell array
         .EXAMPLE
             Get-SQLRestoreSessions -Days 2
         .LINK
@@ -66,12 +66,13 @@ Function Get-SQLRestoreSessions {
 			$Item | Add-Member -type NoteProperty -Name Source -Value $Source
 			$Item | Add-Member -type NoteProperty -Name Target -Value $Target
 			$Item | Add-Member -type NoteProperty -Name StartTime -Value $StartTime
+			$Item | Add-Member -type NoteProperty -Name EndTime -Value $EndTime
 			$Item | Add-Member -type NoteProperty -Name Duration -Value $Duration
 			$Item | Add-Member -type NoteProperty -Name Status -Value $Status
 			$Item | Add-Member -type NoteProperty -Name SessionID -Value $SessionID
 			$Array += $Item
 		} else {
-			write-host "Erreur"
+			Write-Error "Cannot parse line: $_"
 			return
 		}
 	}
