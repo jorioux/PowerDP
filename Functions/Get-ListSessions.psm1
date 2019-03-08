@@ -19,7 +19,8 @@ Function Get-ListSessions {
         [int]$Days = 0,
         [string]$Timeframe,
         [string]$Mode = "*", #full,incr,trans,etc...
-        [String]$Status = "*"
+        [String]$Status = "*",
+        [switch]$WithMedia #fetch for Media label and pool name
     )
 
     $Cmd = 'omnirpt -report list_sessions'
@@ -30,13 +31,38 @@ Function Get-ListSessions {
         if($Hours -lt 1){
             $Hours = 24
         }
-        $Timeframe = "$Hours $Hours"
+        $Timeframe = $([string]$Hours + ' ' + [string]$Hours)
     }
 
-    $Cmd += " -timeframe $Timeframe"
-    $Cmd += " -tab"
+    $Cmd += ' -timeframe ' + $Timeframe
+    $Cmd += ' -tab'
 
-    $Array = Invoke-Expression -Command $Cmd | ConvertTo-Array
+    $Array = Invoke-Expression -Command $Cmd | ConvertFrom-Omnirpt
+
+    if($WithMedia){
+        $NewArray = @()
+        $Array | %{
+            $Session = $_
+            $PoolName = ''
+            $Medias = ''
+            #Fetch Media info only if session type is Copy
+            if($Session.'Session Type' -like "*copy*"){
+                $Cmd = 'omnirpt -report session_media'
+                $Cmd += ' -session ' + $Session.'Session ID'
+                $Cmd += ' -tab'
+                
+                $(Invoke-Expression -Command $Cmd | ConvertFrom-Omnirpt) | %{
+                    $Medias += (($_.Label).split('[')[1]).split(']')[0] + ' '
+                    $PoolName = $_.'Pool Name'
+                }
+                $Medias = $Medias.Trim()
+            }
+            $NewArray += $Session | 
+                            Select-Object -Property *, @{n='Media Labels'; e={$SessionID = $Session.'Session ID'; $Medias}} | 
+                            Select-Object -Property *, @{n='Pool Name'; e={$SessionID = $Session.'Session ID'; $PoolName}}
+        }
+        $Array = $NewArray
+    }
 
     return $Array | Where {
         $_.Specification -like "$Specification" -and 

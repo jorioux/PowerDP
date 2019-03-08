@@ -4,7 +4,7 @@
 
 PowerShell for Micro Focus Data Protector (DP)
 -
-This PowerShell Module converts the `omnirpt <...> -tab` output into a PowerShell array for easy filtering and manipulation. It also provides a few functions that outputs native PowerShell arrays. I intent to develop other functions in the future that builds on top of that.
+This PowerShell Module uses the `omnirpt` and `omnidb` and converts the output into native PowerShell arrays.
 
 Installation
 -
@@ -18,25 +18,65 @@ Install-Module PowerDP
 #### PowerShell v4 and earlier
 Get [PowerShellGet Module](https://docs.microsoft.com/en-us/powershell/gallery/psget/get_psget_module) then do `Install-Module PowerDP`
 
-Usage
+Usage examples
 -
 ```PowerShell
-#The main function is `ConvertTo-Array`. You can pipline the output from the `omnirpt` command or pass it as a parameter.
-#The column names are kept the same, so you can easily filter with the columns names and display only the columns you want.
-#It's important to include the `-tab` parameter because the function needs the input to be tab separated.
-omnirpt -report list_sessions -timeframe 24 24 -tab | ConvertTo-Array
-omnirpt -report used_media -timeframe 48 48 -tab | ConvertTo-Array | Where-Object {$_.Location -like "*HP:MSL6480*"}
+# The main functions are `Get-Omnidb` and `Get-Omnirpt`.
+# The column names are kept the same, so you can easily filter with the columns names and display only the columns you want.
+Get-Omnirpt -Report obj_copies -Days 7
+Get-Omnirpt -Report obj_nobackup
+Get-Omnirpt -Report session_objects -Session 2019/03/03-12
 
-#Converts the list_sessions report to a PowerShell array
+Get-Omnidb -Session 2019/03/07-7 -Listcopies
+Get-Omnidb -Session 2019/03/03-2 -Media
+
+#Converts the list_sessions report to a PowerShell array with additionnal filters
 Get-ListSessions | Out-GridView
 Get-ListSessions -Specification *full* -Days 7 -SessionType backup
 Get-ListSessions -Specification *sql* -Hours 4 -Mode trans
 
-#Converts the session_objects report to a PowerShell array
-Get-SessionObjects 2018/03/30-01
-
 #Fetches the session messages of each SQL restore sessions and returns a PowerShell array
 Get-SQLRestoreSessions -Days 2
+```
+
+`Get-Omnirpt` usage
+-
+You must specify a report. You can omit `-Report` and only write `Get-Omnirpt <report_name>` if you want. Some reports requires additional parameters like `-Session` or `-Timeframe`. You can substitute `-Timeframe` by `-Days`.
+
+A few examples:
+```PowerShell
+Get-Omnirpt obj_copies -Days 2
+Get-Omnirpt obj_copies -Timeframe "48 48"
+Get-Omnirpt session_media -Session 2019/03/03-6
+```
+
+Available reports for `-Report` parameter are:
+* list_sessions
+* used_media
+* host_statistics
+* obj_nobackup
+* obj_copies
+* obj_lastbackup
+* obj_avesize
+* media_list
+* single_session
+* session_objects
+* session_hosts
+* session_devices
+* session_media
+* session_objcopies
+
+`Get-Omnidb` usage
+-
+You must specify a session with `-Session`. You can then specify one these parameters:
+
+* `-Media`
+* `-Listcopies`
+
+A few examples:
+```PowerShell
+Get-Omnidb 2019/03/07-7 -Listcopies
+Get-Omnidb 2019/03/03-2 -Media
 ```
 
 Prerequisites
@@ -48,27 +88,6 @@ Compatibility
 -
 Confirmed working on DP versions 10.00 and up.
 
-Release notes
+Contribution
 -
-#### 1.0.6 (October 25, 2018)
-* Bugfix: The Duration and EndTime fields now shows *null* when the job has not ended yet
-* Since DP is now owned by Micro Focus, I changed the title of the module accordingly
-
-#### 1.0.5 (April 20, 2018)
-* Converts string numbers to Int to allow sorting
-* Some bugfix
-
-#### 1.0.4  (April 3, 2018)
-* Added new function : Get-SessionObjects
-* Enhanced function ConvertTo-Array
-    - Removed "[" and "]" in column names so they are displayed correctly in Out-GridView
-    - "Duration" column now displays with seconds
-    - Converts the "Size [kB]" column to "Size (GB)" for better readability of the size
-
-#### 1.0.3 (March 22, 2018)
-* Added new function : Get-ListSessions
-* Removed "\_t" (timestamp) column and keep only the non-"\_t" column since its already converted to DateTime format
-* Some code optimization
-
-#### 1.0.2 (March 21, 2018)
-* Initial stable release
+Feel free to open issues and to contribute!

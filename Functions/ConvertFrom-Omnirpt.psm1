@@ -1,13 +1,13 @@
-Function ConvertTo-Array {
+Function ConvertFrom-Omnirpt {
 	<#
 		.SYNOPSIS
 			Creates an array out of the omnirpt output
 		.DESCRIPTION
 			Converts the "omnirpt <...> -tab" output into a native PowerShell array for easy filtering and manipulation.
 		.EXAMPLE
-			omnirpt -report list_sessions -timeframe 24 24 -tab | ConvertTo-Array
+			omnirpt -report list_sessions -timeframe 24 24 -tab | ConvertFrom-Omnirpt
 		.EXAMPLE
-			omnirpt -report used_media -timeframe 24 24 -tab | ConvertTo-Array | Where-Object {$_.Location -like "*HP:MSL6480*"}
+			omnirpt -report used_media -timeframe 24 24 -tab | ConvertFrom-Omnirpt | Where-Object {$_.Location -like "*HP:MSL6480*"}
 		.LINK
 			https://github.com/jorioux/PowerDP
 	#>
@@ -132,6 +132,9 @@ Function ConvertTo-Array {
 				} elseif($Headers[$_] -match '^.*\[kB\]') {
 					$Size = $ArrLine[$_]/1KB/1KB
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [kB]',' (GB)') -Value $Size
+				} elseif($Headers[$_] -match '^.*\[MB\]') {
+					$Size = [int]($ArrLine[$_]).split(',')[0]/1KB
+					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB]',' (GB)') -Value $Size
 				} elseif($Headers[$_] -match '^.*\[MB/min\]') {
 					$Value = ConvertTo-Int $ArrLine[$_]
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $Value
@@ -149,31 +152,5 @@ Function ConvertTo-Array {
 	}
 	END {
 		return $ArrayOutput
-	}
-}
-
-Function ConvertTo-Int {
-	<#
-		.SYNOPSIS
-			Converts a string value to a Int or Double
-	#>
-	[CmdletBinding()]
-	Param(
-		[Parameter(ValueFromPipeline = $true)]
-		[ValidateNotNullOrEmpty()]
-        $IntVal
-	)
-	try{
-		if($IntVal.GetType().FullName -match '^.*Int.*$') {
-			return [int]$IntVal
-		} elseif($IntVal.GetType().FullName -match '^.*(Double|Float).*$') {
-			return [math]::Round([double]$IntVal,2)
-		} elseif($IntVal -match '^.*(\,|\.).*$') {
-			return [math]::Round([double]($IntVal.replace(',','.')),2)
-		} else {
-			return [int]($IntVal)
-		}
-	} catch {
-		return $IntVal
 	}
 }
