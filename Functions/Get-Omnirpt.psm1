@@ -22,7 +22,6 @@ Function Get-Omnirpt {
             'obj_lastbackup',
             'obj_avesize',
             'media_list',
-            'single_session',
             'session_objects',
             'session_hosts',
             'session_devices',
@@ -39,12 +38,7 @@ Function Get-Omnirpt {
         'list_sessions',
         'used_media',
         'host_statistics',
-        'obj_copies',
-        'session_objects',
-        'session_hosts',
-        'session_devices',
-        'session_media',
-        'session_objcopies'
+        'obj_copies'
     )
 
     if($NeedsTimeframe.Contains($Report)){

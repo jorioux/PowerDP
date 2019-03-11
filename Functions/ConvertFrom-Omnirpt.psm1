@@ -139,7 +139,9 @@ Function ConvertFrom-Omnirpt {
 					$Value = ConvertTo-Int $ArrLine[$_]
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $Value
 				} elseif($Headers[$_] -match '(GB Written|Media|Errors|Warnings|Objects|Files)') {
-					$Value = ConvertTo-Int $ArrLine[$_]
+					if($ArrLine[$_] -ne $null){
+						$Value = ConvertTo-Int $ArrLine[$_]
+					}
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_].replace(' [MB/min]',' (MB/min)') -Value $Value
 				} else {
 					$Item | Add-Member -type NoteProperty -Name $Headers[$_] -Value $ArrLine[$_]
