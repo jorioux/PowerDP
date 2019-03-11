@@ -35,16 +35,11 @@ Function Get-Omnirpt {
         [int]$Days
     )
 
-    $ValidReports = @(
+    $NeedsTimeframe = @(
         'list_sessions',
         'used_media',
         'host_statistics',
-        'obj_nobackup',
         'obj_copies',
-        'obj_lastbackup',
-        'obj_avesize',
-        'media_list',
-        'single_session',
         'session_objects',
         'session_hosts',
         'session_devices',
@@ -52,10 +47,10 @@ Function Get-Omnirpt {
         'session_objcopies'
     )
 
-    if(!$ValidReports.Contains($Report)){
-        write-host "Not a valid report. Valid reports are :`n"
-        $ValidReports | %{write-host "`t$_"}
-        return ""
+    if($NeedsTimeframe.Contains($Report)){
+        if($Days -lt 1){
+            $Days = 1
+        }
     }
 
     $Cmd = "omnirpt -report $Report "
