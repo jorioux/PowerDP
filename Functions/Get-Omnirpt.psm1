@@ -12,7 +12,23 @@ Function Get-Omnirpt {
 
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipeline = $true)]
+        [Parameter(Mandatory = $true,ValueFromPipeline = $true)]
+        [ValidateSet(
+            'list_sessions',
+            'used_media',
+            'host_statistics',
+            'obj_nobackup',
+            'obj_copies',
+            'obj_lastbackup',
+            'obj_avesize',
+            'media_list',
+            'single_session',
+            'session_objects',
+            'session_hosts',
+            'session_devices',
+            'session_media',
+            'session_objcopies'
+        )]
         [string]$Report,
         [string]$Session,
         [string]$Timeframe,
