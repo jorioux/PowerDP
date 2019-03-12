@@ -88,6 +88,6 @@ Compatibility
 -
 Confirmed working on DP versions 10.00 and up.
 
-Contribution
+Contributing
 -
-Feel free to open issues and to contribute!
+Any contributions are welcome and feel free to open issues.
